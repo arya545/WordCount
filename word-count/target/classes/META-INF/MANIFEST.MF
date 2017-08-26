@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Built-By: ratheev
+Class-Path: lib/junit-4.12.jar lib/hamcrest-core-1.3.jar lib/mongodb-d
+ river-3.5.0.jar lib/mongodb-driver-core-3.5.0.jar lib/bson-3.5.0.jar 
+ lib/mongo-java-driver-3.5.0.jar
+Build-Jdk: 1.8.0_131
+Created-By: Maven Integration for Eclipse
+Main-Class: com.floow.codechallenge.WordCount
+

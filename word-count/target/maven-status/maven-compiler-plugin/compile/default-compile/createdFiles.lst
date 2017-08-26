@@ -1,0 +1,5 @@
+com\floow\codechallenge\MongoDAO.class
+com\floow\test\WordCountTest.class
+com\floow\utils\ReadProperties.class
+com\floow\codechallenge\WordCount$FileProcessor.class
+com\floow\codechallenge\WordCount.class
