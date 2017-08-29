@@ -9,15 +9,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.bson.Document;
 import com.floow.utils.ReadProperties;
 import com.mongodb.MongoClient;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 
 //This class is to perform all operations using MongoDB
 public class MongoDAO {
+
+	final static Logger logger = Logger.getLogger(MongoDAO.class);
 
 	private final String hostName;
 	private final String port;
@@ -45,11 +49,26 @@ public class MongoDAO {
 			this.mongoClient = new MongoClient(hostName, portNum);
 			MongoDatabase database = mongoClient.getDatabase(dbName);
 			MongoCollection<Document> collection = database.getCollection(collectionName);
+			checkIfCollectionPresent(database,collectionName);
 			insertIntoCollection(collection);
 		} catch (Exception e) {
-			e.printStackTrace();
+
+			logger.error(e.getMessage());
 		}
 
+	}
+	
+	public void checkIfCollectionPresent(MongoDatabase database,String collectionName)
+	{
+		 MongoIterable<String> collectionNames = database.listCollectionNames();
+		 
+	        for(String name: collectionNames) {
+	            if (name.equalsIgnoreCase(collectionName))
+	            {
+	            	//logger.debug("both Collections are equal");
+	            	database.getCollection(collectionName).drop();
+	            }
+	        }
 	}
 
 	// Method to insert into MongoDB
@@ -65,7 +84,8 @@ public class MongoDAO {
 
 		}
 
-		System.out.println("Inserted successfully");
+		//logger.debug("Inserted successfully");
+
 		getMinRepeatedWord(collection);
 		getMaxRepeatedWord(collection);
 
@@ -85,23 +105,24 @@ public class MongoDAO {
 		AggregateIterable<Document> output = collection.aggregate(asList(group, sort, limit, project))
 				.allowDiskUse(true);
 
+		
 		// Assigning the number of words having same number of minimum value
 		// into a variable num
 		int num = 0;
 		for (Document d : output) {
 			num = d.getInteger("count");
 		}
-		System.out.println("Total number of words having minimum count  " + num);
+		logger.debug("Total number of words having minimum count  " + num);
 
 		// Logic to get all the documents having minimum numberOfOccurences
 		Document mainsort = new Document("$sort", new Document("numberOfOccurances", 1));
 		Document mainlimit = new Document("$limit", num);
 		AggregateIterable<Document> output1 = collection.aggregate(asList(mainsort, mainlimit)).allowDiskUse(true);
-		Iterator<Document> itr = output1.iterator();
+		Iterator<Document> itr1 = output1.iterator();
 
-		while (itr.hasNext()) {
+		while (itr1.hasNext()) {
 
-			System.out.println("Minimum repeated words   " + itr.next());
+			logger.debug("Minimum repeated words   " + itr1.next());
 		}
 
 	}
@@ -112,13 +133,15 @@ public class MongoDAO {
 		// Logic for finding the number of words having same number of maximum
 		// value in numberOfOccurences field)
 
-		Document group = new Document("$group",
+		Document groupmax = new Document("$group",
 				new Document("_id", "$numberOfOccurances").append("count", new Document("$sum", 1)));
-		Document sort = new Document("$sort", new Document("_id", -1));
-		Document limit = new Document("$limit", 1);
-		Document project = new Document("$project", new Document("_id", 0));
-		AggregateIterable<Document> output = collection.aggregate(asList(group, sort, limit, project))
+		Document sortmax = new Document("$sort", new Document("_id", -1));
+		Document limitmax = new Document("$limit", 1);
+		Document projectmax = new Document("$project", new Document("_id", 0));
+		AggregateIterable<Document> output = collection.aggregate(asList(groupmax, sortmax, limitmax, projectmax))
 				.allowDiskUse(true);
+
+		
 
 		// Assigning the number of words having same number of maximum value
 		// into a variable num
@@ -127,16 +150,17 @@ public class MongoDAO {
 			num = d.getInteger("count");
 
 		}
-		System.out.println("Total number of words having maximum count  " + num);
+		logger.debug("Total number of words having maximum count  " + num);
 
 		// Logic to get all the documents having maximum numberOfOccurences
-		Document mainsort = new Document("$sort", new Document("numberOfOccurances", -1));
-		Document mainlimit = new Document("$limit", num);
-		AggregateIterable<Document> output1 = collection.aggregate(asList(mainsort, mainlimit)).allowDiskUse(true);
-		Iterator<Document> itr = output1.iterator();
-		while (itr.hasNext()) {
+		Document mainmaxsort = new Document("$sort", new Document("numberOfOccurances", -1));
+		Document mainmaxlimit = new Document("$limit", num);
+		AggregateIterable<Document> output1 = collection.aggregate(asList(mainmaxsort, mainmaxlimit))
+				.allowDiskUse(true);
+		Iterator<Document> itr1 = output1.iterator();
+		while (itr1.hasNext()) {
 
-			System.out.println("Minimum repeated words   " + itr.next());
+			logger.debug("Maximum repeated words   " + itr1.next());
 		}
 		closeMongoDBConnection();
 	}

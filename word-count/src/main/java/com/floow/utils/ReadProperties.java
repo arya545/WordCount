@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 //This class is to read the config.properties file
 public class ReadProperties {
+	
+	final static Logger logger = Logger.getLogger(ReadProperties.class);
 
 	InputStream inputstream;
 	Properties prop;
@@ -26,13 +30,13 @@ public class ReadProperties {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		} finally {
 			try {
 				inputstream.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage());
 			}
 		}
 	}
